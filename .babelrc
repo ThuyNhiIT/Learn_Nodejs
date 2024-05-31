@@ -1,0 +1,4 @@
+// dùng cả đc require và import
+{
+    "presets": ["@babel/preset-env"]
+}
