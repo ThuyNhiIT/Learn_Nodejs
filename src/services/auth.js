@@ -49,26 +49,33 @@ export const login = async (email, password) =>
       // Tìm có thì trả về, không có thì tạo mới
       const response = await db.User.findOne({
         where: { email },
-        // raw: true, // Không lấy dữ liệu thừa
+        raw: true, // Không lấy dữ liệu thừa
       });
 
-      //Tạo token
-      // const token = response[1]
-      //   ? jwt.sign(
-      //       {
-      //         id: response[0].id,
-      //         email: response[0].email,
-      //         role_code: response[0].role_code,
-      //       },
-      //       process.env.SECRET_KEY,
-      //       { expiresIn: "5d" }
-      //     )
-      //   : null;
-      console.log(response);
+      // So sánh password
+      const isChecked =
+        response && bcrypt.compareSync(password, response.password); // Nếu có thì so sánh password
+      // Nếu password đúng thì tạo token
+      const token = isChecked
+        ? jwt.sign(
+            {
+              id: response.id,
+              email: response.email,
+              role_code: response.role_code,
+            },
+            process.env.SECRET_KEY,
+            { expiresIn: "5d" }
+          )
+        : null;
+
       resolve({
-        err: response ? 0 : 1,
-        message: response ? "Login is successfully" : "error",
-        response,
+        err: token ? 0 : 1,
+        message: token
+          ? "Login is successfully"
+          : response
+          ? "Password is incorrect"
+          : "Email is not exists",
+        "access-token": token ? `Bearer ${token}` : null,
       });
 
       resolve({ err: 0, message: "register services" });
